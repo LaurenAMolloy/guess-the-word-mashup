@@ -13,36 +13,37 @@ let word = "aladdin";
 //Add a New Global Variable for Player Guesses
 guessedLetters = [];
 //Declare a Global Variable for the Number of Guesses
-let remainingGuesses = 8
+let remainingGuesses = 8;
 
 const fetchCharacterNames = async function () {
-  const response = await fetch (
-    "https://api.disneyapi.dev/character");
-    const data = await response.json();
+  const response = await fetch("https://api.disneyapi.dev/character");
+  const data = await response.json();
 
-    // Extract names from the data and store them in an array
-    const characterNames = data.data.map(character => character.name);
+  // Extract names from the data and store them in an array
+  const characterNames = data.data.map((character) => character.name);
 
-    //Get random character name
-    const randomIndex = Math.floor(Math.random() * characterNames.length);
-    word = characterNames[randomIndex].trim();
-    placeholder(word);
-  };
+  //Get random character name
+  const randomIndex = Math.floor(Math.random() * characterNames.length);
+  word = characterNames[randomIndex].toUpperCase();
+  placeholder(word);
+};
 
-  fetchCharacterNames();
-
+//Start the game
+fetchCharacterNames();
 
 //Write a Function to Add Placeholders for Each Letter
 const placeholder = function (word) {
   const placeholderLetters = [];
   for (const letter of word) {
     console.log(letter);
-    placeholderLetters.push("❤");
+    if (letter === " ") {
+      placeholderLetters.push(" ");
+    } else {
+      placeholderLetters.push("❤");
+    }
   }
   wordInProgress.innerText = placeholderLetters.join("");
 };
-
-placeholder(word);
 
 //Add an Event Listener for the Button
 guessLetterButton.addEventListener("click", function (e) {
@@ -72,7 +73,7 @@ const validateInput = function (input) {
   } else if (!input.match(acceptedLetter)) {
     message.innerText = "Please enter letters only.";
   } else {
-    return input;
+    return input.toUpperCase();
   }
 };
 
@@ -93,56 +94,86 @@ const makeGuess = function (guess) {
 //Create a Function to Show the Guessed Letters
 const showGuesses = function () {
   guessedLettersElement.innerHTML = "";
-  for(const letter of guessedLetters) {
-  const li = document.createElement("li");
-  li.innerText = letter;
-  guessedLettersElement.append(li);
+  for (const letter of guessedLetters) {
+    const li = document.createElement("li");
+    li.innerText = letter;
+    guessedLettersElement.append(li);
   }
-}
+};
 
 //Create a Function to Update the Word in Progress
 const updateWordInProgress = function (guessedLetters) {
-const wordUpper = word.toUpperCase();
-const wordArray = wordUpper.split("");
-//console.log(wordArray);
-//how do I know to include a for of loop?
-const revealWord = [];
-for (const letter of wordArray) {
-if (guessedLetters.includes(letter)) {
-revealWord.push(letter.toUpperCase())
-} else {
-  revealWord.push("●");
-}
-}
-wordInProgress.innerText = revealWord.join("");
-checkIfWin();
+  const wordUpper = word.toUpperCase();
+  const wordArray = wordUpper.split("");
+  //console.log(wordArray);
+  //how do I know to include a for of loop?
+  const revealWord = [];
+  for (const letter of wordArray) {
+    if (letter === " ") {
+      revealWord.push(" ");
+    } else if (guessedLetters.includes(letter)) {
+      revealWord.push(letter.toUpperCase());
+    } else {
+      revealWord.push("❤");
+    }
+  }
+  wordInProgress.innerText = revealWord.join("");
+  checkIfWin();
 };
 
 //Create a Function to Count Guesses Remaining
 const updateRemainingGuesses = function (guess) {
-const upperWord = word.toUpperCase();
-if (!upperWord.includes(guess)){
-  //bad guess, lose a chance
-  message.innerText = `Sorry, the word has no ${guess}.`;
-  remainingGuesses -= 1;
-} else {
-  message.innerText =`Good guess! The word has the letter ${guess}.`;
-}
+  const upperWord = word.toUpperCase();
+  if (!upperWord.includes(guess)) {
+    //bad guess, lose a chance
+    message.innerText = `Sorry, the character has no ${guess}.`;
+    remainingGuesses -= 1;
+  } else {
+    message.innerText = `Good guess! The character has the letter ${guess}.`;
+  }
 
-if (remainingGuesses === 0) {
-  message.innerHTML = `Game Over! The word was <span class="highlight">${word}</span>.`;
-} else if ( remainingGuesses === 1) {
-  remainingGuessesSpan.innerText = `${remainingGuesses} guess`;
-} else {
-  remainingGuessesSpan.innerText = `${remainingGuesses} guesses`;
-}
+  if (remainingGuesses === 0) {
+    message.innerHTML = `Game Over! The character was <span class="highlight">${word}</span>.`;
+  } else if (remainingGuesses === 1) {
+    remainingGuessesSpan.innerText = `${remainingGuesses} guess`;
+  } else {
+    remainingGuessesSpan.innerText = `${remainingGuesses} guesses`;
+  }
 };
 
 //Create a function to check if player has won
 const checkIfWin = function () {
-if (word.toUpperCase() === wordInProgress.innerText) {
-  message.classList.add("win");
-  message.innerHTML = '<p class="highlight">You guessed correct the word! Congrats!</p>';
-}
+  if (word.toUpperCase() === wordInProgress.innerText) {
+    message.classList.add("win");
+    message.innerHTML =
+      '<p class="highlight">You guessed correct the word! Congrats!</p>';
+
+    startOver();
+  }
 };
+
+const startOver = function () {
+  guessLetterButton.classList.add("hide");
+  remainingGuessesElement.classList.add("hide");
+  guessedLettersElement.classList.add("hide");
+  playAgainButton.classList.remove("hide")
+}
+
+playAgainButton.addEventListener("click", function(){
+  //reset all values and grab new character
+  message.classList.remove("win");
+  message.innerText = "";
+  remainingGuesses = 8,
+  guessedLetters=[];
+  remainingGuessesSpan.innerText = `${remainingGuesses} guesses`;
+  guessedLettersElement.innerHTML = "";
+  message.innerText = "";
+  fetchCharacterNames();
+
+  guessLetterButton.classList.remove("hide");
+  remainingGuessesElement.classList.remove("hide");
+  guessedLettersElement.classList.add("hide");
+  playAgainButton.classList.add("hide");
+  
+})
 
